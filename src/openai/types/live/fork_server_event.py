@@ -64,7 +64,7 @@ class TransportDtmfReceived(BaseModel):
 
 
 class TransportDtmfSend(BaseModel):
-    """A SIP DTMF keypress successfully sent by the hosted tool.
+    """A SIP DTMF keypress successfully sent to the SIP trunk.
 
     Delivered only to sideband observers; this is not a client command.
     """
