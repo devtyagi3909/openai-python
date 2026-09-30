@@ -84,10 +84,14 @@ class ResponseStream(Generic[TextFormatT]):
         """
         self.until_done()
         response = self._state._completed_response
-        if not response:
-            raise RuntimeError("Didn't receive a `response.completed` event.")
-
-        return response
+        if response:
+            return response
+            
+        snapshot = self._state.current_response_snapshot
+        if snapshot:
+            return snapshot
+            
+        raise RuntimeError("Didn't receive a `response.completed` event.")
 
     def until_done(self) -> Self:
         """Blocks until the stream has been consumed."""
@@ -186,10 +190,14 @@ class AsyncResponseStream(Generic[TextFormatT]):
         """
         await self.until_done()
         response = self._state._completed_response
-        if not response:
-            raise RuntimeError("Didn't receive a `response.completed` event.")
-
-        return response
+        if response:
+            return response
+            
+        snapshot = self._state.current_response_snapshot
+        if snapshot:
+            return snapshot
+            
+        raise RuntimeError("Didn't receive a `response.completed` event.")
 
     async def until_done(self) -> Self:
         """Blocks until the stream has been consumed."""
@@ -248,6 +256,32 @@ class ResponseStreamState(Generic[TextFormatT]):
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._text_format = text_format
         self._rich_text_format: type | Omit = text_format if inspect.isclass(text_format) else omit
+
+    @property
+    def current_response_snapshot(self) -> ParsedResponse[TextFormatT] | None:
+        if self._completed_response:
+            return self._completed_response
+            
+        if not self.__current_snapshot:
+            return None
+            
+        from ....types.responses.response import Response
+        
+        response = model_copy(self.__current_snapshot)
+        if getattr(response, "output", None) is not None:
+            output = []
+            for i, item in enumerate(response.output):
+                if i in self._completed_output:
+                    output.append(self._completed_output[i])
+                else:
+                    output.append(item)
+            response.output = output
+            
+        return parse_response(
+            text_format=self._text_format,
+            response=construct_type_unchecked(type_=Response, value=response.to_dict()),
+            input_tools=self._input_tools,
+        )
 
     def handle_event(self, event: RawResponseStreamEvent) -> List[ResponseStreamEvent[TextFormatT]]:
         self.__current_snapshot = self.accumulate_event(event)
