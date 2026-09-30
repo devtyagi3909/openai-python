@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.22.2](https://github.com/openai/openai-python/compare/v3.22.1...v3.22.2) (2026-09-30)
+
+
+### Bug Fixes
+
+* **api:** retain WebSocket endpoint paths and query parameters ([#3999](https://github.com/openai/openai-python/issues/3999)) ([7f203fd](https://github.com/openai/openai-python/commit/7f203fd5cfd96354524cd07498497b2e27184f95))
+* **responses:** respect send queue limits during reconnect ([#4000](https://github.com/openai/openai-python/issues/4000)) ([50f95ac](https://github.com/openai/openai-python/commit/50f95ac0f3563a32c9c2e0415e4701e283f17096))
+* use monotonic clock for file processing timeout ([#3748](https://github.com/openai/openai-python/issues/3748)) ([58aca1d](https://github.com/openai/openai-python/commit/58aca1dcfd8d04a3c6352fa2c34b3035ea850f57))
+
 ## [3.22.1](https://github.com/openai/openai-python/compare/v3.22.0...v3.22.1) (2026-09-30)
 
 
