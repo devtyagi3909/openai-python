@@ -168,10 +168,33 @@ def parse_text(text: str, text_format: type[TextFormatT] | Omit, *, phase: str |
     raise TypeError(f"Unable to automatically parse response format type {text_format}")
 
 
-def get_input_tool_by_name(*, input_tools: Iterable[ToolParam], name: str) -> FunctionToolParam | None:
-    for tool in input_tools:
-        if tool["type"] == "function" and tool.get("name") == name:
-            return tool
+def get_input_tool_by_name(
+    *,
+    input_tools: Iterable[ToolParam],
+    name: str,
+    namespace: str | None = None,
+) -> FunctionToolParam | None:
+    tools = list(input_tools)
+    if namespace is not None:
+        namespace_found = False
+        for tool in tools:
+            if isinstance(tool, dict) and tool.get("type") == "namespace" and tool.get("name") == namespace:
+                namespace_found = True
+                raw_subtools = tool.get("tools")
+                if isinstance(raw_subtools, Iterable) and not isinstance(raw_subtools, (str, bytes, dict)):
+                    for subtool in raw_subtools:
+                        if (
+                            isinstance(subtool, dict)
+                            and subtool.get("type") in ("function", None)
+                            and subtool.get("name") == name
+                        ):
+                            return cast(FunctionToolParam, subtool)
+        if namespace_found:
+            return None
+
+    for tool in tools:
+        if isinstance(tool, dict) and tool.get("type") == "function" and tool.get("name") == name:
+            return cast(FunctionToolParam, tool)
 
     return None
 
@@ -184,7 +207,11 @@ def parse_function_tool_arguments(
     if input_tools is None or not is_given(input_tools):
         return None
 
-    input_tool = get_input_tool_by_name(input_tools=input_tools, name=function_call.name)
+    input_tool = get_input_tool_by_name(
+        input_tools=input_tools,
+        name=function_call.name,
+        namespace=getattr(function_call, "namespace", None),
+    )
     if not input_tool:
         return None
 
