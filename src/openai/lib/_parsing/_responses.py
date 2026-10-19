@@ -11,7 +11,7 @@ from ..._types import Omit
 from ..._utils import is_given
 from ..._compat import PYDANTIC_V1, model_parse_json
 from ..._models import construct_type_unchecked
-from .._pydantic import is_basemodel_type, is_dataclass_like_type
+from .._pydantic import is_basemodel_type, normalize_schema_name, is_dataclass_like_type
 from ._completions import type_to_response_format_param
 from ...types.responses import (
     Response,
@@ -45,7 +45,7 @@ def type_to_text_format_param(type_: type) -> ResponseFormatTextConfigParam:
     return {
         "type": "json_schema",
         "strict": True,
-        "name": response_format_dict["json_schema"]["name"],
+        "name": normalize_schema_name(response_format_dict["json_schema"]["name"]),
         "schema": response_format_dict["json_schema"]["schema"],
     }
 

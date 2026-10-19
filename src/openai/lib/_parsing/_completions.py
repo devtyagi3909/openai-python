@@ -12,7 +12,7 @@ from ..._types import Omit, omit
 from ..._utils import is_dict, is_given
 from ..._compat import PYDANTIC_V1, model_parse_json
 from ..._models import construct_type_unchecked
-from .._pydantic import is_basemodel_type, to_strict_json_schema, is_dataclass_like_type
+from .._pydantic import is_basemodel_type, normalize_schema_name, to_strict_json_schema, is_dataclass_like_type
 from ...types.chat import (
     ParsedChoice,
     ChatCompletion,
@@ -280,10 +280,10 @@ def type_to_response_format_param(
     json_schema_type: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any] | None = None
 
     if is_basemodel_type(response_format):
-        name = response_format.__name__
+        name = normalize_schema_name(response_format.__name__)
         json_schema_type = response_format
     elif is_dataclass_like_type(response_format):
-        name = response_format.__name__
+        name = normalize_schema_name(response_format.__name__)
         json_schema_type = pydantic.TypeAdapter(response_format)
     else:
         raise TypeError(f"Unsupported response_format type - {response_format}")

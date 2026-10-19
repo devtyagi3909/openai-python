@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import hashlib
 import inspect
 from typing import Any, TypeVar
 from typing_extensions import TypeGuard
@@ -11,6 +13,14 @@ from .._utils import is_dict as _is_dict, is_list
 from .._compat import PYDANTIC_V1, model_json_schema
 
 _T = TypeVar("_T")
+
+
+def normalize_schema_name(name: str) -> str:
+    sanitized = re.sub(r"[^a-zA-Z0-9_-]", "_", name)
+    if len(sanitized) > 64:
+        hash_suffix = hashlib.sha256(name.encode("utf-8")).hexdigest()[:8]
+        sanitized = f"{sanitized[:55]}_{hash_suffix}"
+    return sanitized
 
 
 def to_strict_json_schema(model: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any]) -> dict[str, Any]:

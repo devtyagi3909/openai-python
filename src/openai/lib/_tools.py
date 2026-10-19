@@ -6,7 +6,7 @@ import pydantic
 
 from .._types import Omit, omit
 from .._utils import is_given
-from ._pydantic import to_strict_json_schema
+from ._pydantic import normalize_schema_name, to_strict_json_schema
 from ..types.chat import ChatCompletionFunctionToolParam
 from ..types.shared_params import FunctionDefinition
 from ..types.responses.function_tool_param import FunctionToolParam as ResponsesFunctionToolParam
@@ -52,7 +52,7 @@ def pydantic_function_tool(
 
     function = PydanticFunctionTool(
         {
-            "name": name or model.__name__,
+            "name": name or normalize_schema_name(model.__name__),
             "strict": True,
             "parameters": to_strict_json_schema(model),
         },
